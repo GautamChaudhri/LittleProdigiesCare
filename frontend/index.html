@@ -151,6 +151,48 @@ Pre-literacy, early math, STEM, arts, and outdoor play — enriched with sensory
     </div>
   </section>
 
+  <section id="contact" class="section">
+    <section class="container grid-2">
+      <div>
+        <form id="enrollment-form">
+          <div>
+            <label for="parent_name">Parent/Guardian Name</label>
+            <input type="text" id="parent_name" name="parent_name" placeholder="e.g., Jane Doe" required/>
+          </div>
+          <div>
+            <label for="child_name">Child Name</label>
+            <input type="text" id="child_name" name="child_name" placeholder="e.g., John Doe" required/>
+          </div>
+          <div>
+            <label for="dob">Date of Birth</label>
+            <input type="date" id="dob" name="dob" required/>
+          </div>
+          <div>
+            <label for="gender">Gender</label>
+            <select id="gender" name="gender" required>
+              <option value="">Select Gender</option>
+              <option value="male">Male</option>
+              <option value="female">Female</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div>
+            <label for="email">Email Address</label>
+            <input type="email" id="email" name="email" placeholder="e.g. hello@example.com" required/>
+          </div>
+          <div>
+            <label for="phone_number">Phone Number</label>
+            <input type="tel" id="phone_number" name="phone_number" required placeholder="e.g., 123-456-7890"/>
+            </div>
+          <div>
+            <label for="message">Message/Comments</label>
+            <textarea id="message" name="message" placeholder="e.g. Add any comments if necessary"></textarea>
+          </div>
+          <button type="submit" class="btn primary">Submit</button>
+        </form>
+      </div>
+    </section>
+
   <footer id="contact" class="site-footer">
     <div class="container footer-inner">
       <div class="footer-brand">
@@ -202,6 +244,14 @@ Pre-literacy, early math, STEM, arts, and outdoor play — enriched with sensory
       nav.classList.toggle('open');
     });
     document.getElementById('year').textContent = new Date().getFullYear();
+
+    const enrollmentForm = document.getElementById('enrollment-form')
+    enrollmentForm.addEventListener('submit', (event) => {
+      event.preventDefault();
+      const formData = new FormData(enrollmentForm);
+      const data = Object.fromEntries(formData.entries());
+      console.log(data);
+    });
   </script>
 </body>
 </html>
