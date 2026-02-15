@@ -6,3 +6,5 @@ GEMINI.md
 .idea
 LittleProdigies.iml
 .venv
+__pycache__
+*.db

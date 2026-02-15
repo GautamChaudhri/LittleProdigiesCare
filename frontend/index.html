@@ -151,8 +151,8 @@ Pre-literacy, early math, STEM, arts, and outdoor play — enriched with sensory
     </div>
   </section>
 
-  <section id="contact" class="section">
-    <section class="container grid-2">
+  <section id="enrollment" class="section">
+    <div class="container grid-2">
       <div>
         <form id="enrollment-form">
           <div>
@@ -189,9 +189,11 @@ Pre-literacy, early math, STEM, arts, and outdoor play — enriched with sensory
             <textarea id="message" name="message" placeholder="e.g. Add any comments if necessary"></textarea>
           </div>
           <button type="submit" class="btn primary">Submit</button>
+          <div id="enrollment-status" style="margin-top: 1rem; font-weight: 600;"></div>
         </form>
       </div>
-    </section>
+    </div>
+  </section>
 
   <footer id="contact" class="site-footer">
     <div class="container footer-inner">
@@ -250,7 +252,38 @@ Pre-literacy, early math, STEM, arts, and outdoor play — enriched with sensory
       event.preventDefault();
       const formData = new FormData(enrollmentForm);
       const data = Object.fromEntries(formData.entries());
-      console.log(data);
+      const statusDiv = document.getElementById('enrollment-status');
+
+      // Reset status message
+      statusDiv.textContent = 'Submitting...';
+      statusDiv.style.color = '#333';
+
+      fetch('http://localhost:5001/api/enroll', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      })
+      .then(response => {
+        if (!response.ok) {
+          // Try to get error message from the response body
+          return response.json().then(err => {
+            throw new Error(err.message || 'Something went wrong');
+          });
+        }
+        return response.json();
+      })
+      .then(data => {
+        statusDiv.textContent = data.message || 'Enrollment successful!';
+        statusDiv.style.color = 'green';
+        enrollmentForm.reset();
+      })
+      .catch(error => {
+        statusDiv.textContent = error.message || 'Something went wrong. Please try again.';
+        statusDiv.style.color = 'red';
+        console.error('There was a problem with the fetch operation:', error);
+      });
     });
   </script>
 </body>
