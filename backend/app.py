@@ -1,11 +1,11 @@
 from datetime import datetime, date
 from flask import Flask, request, send_from_directory
 from flask_sqlalchemy import SQLAlchemy
-from flask_cors import CORS
 from sqlalchemy.orm import DeclarativeBase
 from dotenv import load_dotenv
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
+from html import escape
 import smtplib
 import os
 
@@ -23,7 +23,6 @@ class Base(DeclarativeBase):
 db = SQLAlchemy(model_class=Base)
 app = Flask(__name__, static_folder=FRONTEND_FOLDER, static_url_path='')
 app.config["SQLALCHEMY_DATABASE_URI"] = SQLALCHEMY_DATABASE_URL
-CORS(app)
 db.init_app(app)
 
 # Model Definitions
@@ -50,21 +49,33 @@ def root():
 @app.route("/api/enroll", methods=["POST"])
 def enrollment():
     form = request.get_json()
+    if not form:
+        return {"message": "Invalid request."}, 400
 
-    birth_date = datetime.strptime(form["dob"], '%Y-%m-%d').date()
+    # Validate required fields
+    required = ["parent_name", "child_name", "dob", "gender", "email", "phone_number"]
+    for field in required:
+        if not form.get(field, "").strip():
+            return {"message": f"Missing required field: {field}"}, 400
+
+    try:
+        birth_date = datetime.strptime(form["dob"], '%Y-%m-%d').date()
+    except ValueError:
+        return {"message": "Invalid date format."}, 400
+
     today = date.today()
     calculated_age = today.year - birth_date.year - ((today.month, today.day) < (birth_date.month, birth_date.day))
 
     try:
         new_enrollment = Enrollment(
-            parent_name = form["parent_name"],
-            child_name = form["child_name"],
+            parent_name = form["parent_name"].strip(),
+            child_name = form["child_name"].strip(),
             dob = birth_date,
             age = calculated_age,
-            gender = form["gender"],
-            email = form["email"],
-            phone_number = form["phone_number"],
-            message = form["message"]
+            gender = form["gender"].strip(),
+            email = form["email"].strip(),
+            phone_number = form["phone_number"].strip(),
+            message = form.get("message", "").strip()
         )
         db.session.add(new_enrollment)
         db.session.commit()
@@ -99,18 +110,18 @@ def send_email(enrollment_data):
     msg['To'] = receiver_email
     msg['Subject'] = f"New Enrollment: {enrollment_data.child_name}"
 
-    # Format the body nicely
+    # Format the body nicely (escape user input to prevent HTML injection)
     body = f"""
     <h2>New Enrollment Received</h2>
     <hr>
-    <p><strong>Parent Name:</strong> {enrollment_data.parent_name}</p>
-    <p><strong>Child Name:</strong> {enrollment_data.child_name}</p>
+    <p><strong>Parent Name:</strong> {escape(enrollment_data.parent_name)}</p>
+    <p><strong>Child Name:</strong> {escape(enrollment_data.child_name)}</p>
     <p><strong>DOB:</strong> {enrollment_data.dob}</p>
     <p><strong>Age:</strong> {enrollment_data.age}</p>
-    <p><strong>Gender:</strong> {enrollment_data.gender}</p>
-    <p><strong>Email:</strong> {enrollment_data.email}</p>
-    <p><strong>Phone:</strong> {enrollment_data.phone_number}</p>
-    <p><strong>Message:</strong><br>{enrollment_data.message}</p>
+    <p><strong>Gender:</strong> {escape(enrollment_data.gender)}</p>
+    <p><strong>Email:</strong> {escape(enrollment_data.email)}</p>
+    <p><strong>Phone:</strong> {escape(enrollment_data.phone_number)}</p>
+    <p><strong>Message:</strong><br>{escape(enrollment_data.message or '')}</p>
     <hr>
     <p>Sent at: {datetime.now()}</p>
     """
