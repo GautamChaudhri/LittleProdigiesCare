@@ -8,3 +8,4 @@ LittleProdigies.iml
 .venv
 __pycache__
 *.db
+.env

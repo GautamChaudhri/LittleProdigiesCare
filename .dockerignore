@@ -1,0 +1,12 @@
+.git
+.venv
+.idea
+.claude
+__pycache__
+*.db
+.env
+.DS_Store
+._DS_Store
+*.iml
+CLAUDE.md
+GEMINI.md
